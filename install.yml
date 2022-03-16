@@ -9,17 +9,16 @@ requirements:
   conda:
     channels:
       - conda-forge
-      packages:
-        - geoglows
-        - hydrostats
-        - pandas
-        - requests
-        - plotly
-        - numpy
-        - scipy
-        - xmltodict
-        - elementpath
-
+    packages:
+      - geoglows
+      - hydrostats
+      - pandas
+      - requests
+      - plotly
+      - numpy
+      - scipy
+      - xmltodict
+      - elementpath
   pip:
 
 post:
