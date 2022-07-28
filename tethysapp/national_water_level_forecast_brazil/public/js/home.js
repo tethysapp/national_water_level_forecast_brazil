@@ -84,7 +84,7 @@ function init_map() {
 
 	var streams = new ol.layer.Image({
 		source: new ol.source.ImageWMS({
-			url: JSON.parse($('#geoserver_endpoint').val())[0].replace(/\/$/, "") + JSON.parse($('#geoserver_endpoint').val())[1] + '/wms',
+			url: 'https://geoserver.hydroshare.org/geoserver/HS-11765271903a45d483416ce57bf8c710/wms',
 			params: { 'LAYERS': 'south_america-brazil-geoglows-drainage_line' },
 			serverType: 'geoserver',
 			crossOrigin: 'Anonymous'
@@ -96,7 +96,7 @@ function init_map() {
 
 	var stations = new ol.layer.Image({
 		source: new ol.source.ImageWMS({
-			url: 'https://geoserver.hydroshare.org/geoserver/HS-ffcc6475ae3448eeb5c2a15a418c7bfd/wms',
+			url: 'https://geoserver.hydroshare.org/geoserver/HS-11765271903a45d483416ce57bf8c710/wms',
 			params: { 'LAYERS': 'Brazil_WL' },
 			serverType: 'geoserver',
 			crossOrigin: 'Anonymous'
