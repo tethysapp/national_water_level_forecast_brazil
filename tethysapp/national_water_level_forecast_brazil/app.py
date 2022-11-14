@@ -8,10 +8,10 @@ class NationalWaterLevelForecastBrazil(TethysAppBase):
 
     name = 'National Water Level Forecast Brazil'
     index = 'national_water_level_forecast_brazil:home'
-    icon = 'national_water_level_forecast_brazil/images/brazil_logo.png'
+    icon = 'national_water_level_forecast_brazil/images/national_water_level_forecast_brazil.jpeg'
     package = 'national_water_level_forecast_brazil'
     root_url = 'national-water-level-forecast-brazil'
-    color = '#d35400'
+    color = '#009C3B'
     description = ''
     tags = '"Hydrology", "Time Series", "Bias Correction", "Hydrostats", "GEOGloWS", "Water Level", "Brazil"'
     enable_feedback = False
@@ -107,6 +107,15 @@ class NationalWaterLevelForecastBrazil(TethysAppBase):
                 url='get-forecast-ensemble-bc-data-csv',
                 controller='national_water_level_forecast_brazil.controllers.get_forecast_ensemble_bc_data_csv'
             ),
+            ########################################
+            ########################################
+            UrlMap(
+                name="get_zoom_array",
+                url="get-zoom-array",
+                controller="national_water_level_forecast_brazil.controllers.get_zoom_array",
+            ),
+            ########################################
+            ########################################
         )
 
         return url_maps

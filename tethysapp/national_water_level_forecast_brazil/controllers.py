@@ -27,10 +27,14 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from .app import NationalWaterLevelForecastBrazil as app
 
+from .model import Stations_manage as stations
+
 def home(request):
     """
     Controller for the app home page.
     """
+
+    global foo_station
 
     # List of Metrics to include in context
     metric_loop_list = list(zip(metric_names, metric_abbr))
@@ -87,15 +91,49 @@ def home(request):
         display_text='Zoom to a Region:',
         name='regions',
         multiple=False,
-        original=True,
-        options=[(region_index[opt]['name'], opt) for opt in region_index]
+        #original=True,
+        options=[(region_index[opt]['name'], opt) for opt in region_index],
+        initial='',
+        select2_options={'placeholder': 'Select a Region', 'allowClear': False}
+    )
+
+    # Load stations data (Brazil_WL.json)
+    stations_file = os.path.join(os.path.join(app.get_app_workspace().path), 'Brazil_WL.json')
+    foo_station = stations(path_dir=stations_file)
+    search_list = foo_station.search_list
+
+    # Select Basins
+    basin_index = json.load(open(os.path.join(os.path.dirname(__file__), 'public', 'geojson2', 'index2.json')))
+    basins = SelectInput(
+        display_text='Zoom to a Basin:',
+        name='basins',
+        multiple=False,
+        # original=True,
+        options=[(basin_index[opt]['name'], opt) for opt in basin_index],
+        initial='',
+        select2_options={'placeholder': 'Select a Basin', 'allowClear': False}
+    )
+
+    # Select SubBasins
+    subbasin_index = json.load(open(os.path.join(os.path.dirname(__file__), 'public', 'geojson3', 'index3.json')))
+    subbasins = SelectInput(
+        display_text='Zoom to a Subbasin:',
+        name='subbasins',
+        multiple=False,
+        # original=True,
+        options=[(subbasin_index[opt]['name'], opt) for opt in subbasin_index],
+        initial='',
+        select2_options={'placeholder': 'Select a Subbasin', 'allowClear': False}
     )
 
     context = {
         "metric_loop_list": metric_loop_list,
         "geoserver_endpoint": geoserver_endpoint,
         "date_picker": date_picker,
-        "regions": regions
+        "regions": regions,
+        "search_list": search_list,
+        "basins": basins,
+        "subbasins": subbasins,
     }
 
     return render(request, 'national_water_level_forecast_brazil/home.html', context)
@@ -1077,7 +1115,7 @@ def get_time_series_bc(request):
         rperiods = pd.DataFrame(data=d)
         rperiods.set_index('rivid', inplace=True)
 
-        r2 = int(rperiods.iloc[0]['return_period_2'])
+        r2 = round(rperiods.iloc[0]['return_period_2'],2)
 
         colors = {
             '2 Year': 'rgba(254, 240, 1, .4)',
@@ -1110,11 +1148,11 @@ def get_time_series_bc(request):
                 visible=visible,
                 line=dict(color=color, width=0))
 
-        r5 = int(rperiods.iloc[0]['return_period_5'])
-        r10 = int(rperiods.iloc[0]['return_period_10'])
-        r25 = int(rperiods.iloc[0]['return_period_25'])
-        r50 = int(rperiods.iloc[0]['return_period_50'])
-        r100 = int(rperiods.iloc[0]['return_period_100'])
+        r5 = round(rperiods.iloc[0]['return_period_5'],2)
+        r10 = round(rperiods.iloc[0]['return_period_10'],2)
+        r25 = round(rperiods.iloc[0]['return_period_25'],2)
+        r50 = round(rperiods.iloc[0]['return_period_50'],2)
+        r100 = round(rperiods.iloc[0]['return_period_100'],2)
 
         hydroviewer_figure.add_trace(template('Return Periods', (r100 * 0.05, r100 * 0.05, r100 * 0.05, r100 * 0.05), 'rgba(0,0,0,0)', fill='none'))
         hydroviewer_figure.add_trace(template(f'2 Year: {r2}', (r2, r2, r5, r5), colors['2 Year']))
@@ -1337,3 +1375,34 @@ def get_forecast_ensemble_bc_data_csv(request):
         return JsonResponse({
             'error': f'{"error: " + str(e), "line: " + str(exc_tb.tb_lineno)}',
         })
+
+############################################################
+def get_zoom_array(request):
+    zoom_description = request.GET['zoom_desc']
+
+    # Ivalid search
+    if zoom_description == '':
+        resp = {'geojson': 'Brazil.json',
+                'message': 404}
+        return JsonResponse(resp)
+
+    try:
+        file_name, station_file, message, station_cont, boundary_cont = foo_station(search_id=zoom_description)
+
+        return JsonResponse({'geojson': file_name,
+                             'message': message,
+                             'stations': station_file,
+                             'stations-cont': station_cont,
+                             'boundary-cont': boundary_cont})
+
+    except Exception as e:
+
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        print("error: " + str(e))
+        print("line: " + str(exc_tb.tb_lineno))
+
+        return JsonResponse({
+            'error': f'{"error: " + str(e), "line: " + str(exc_tb.tb_lineno)}',
+        })
+
+############################################################
